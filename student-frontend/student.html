@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student I-Card Form - NICA</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container { max-width: 700px; background: #fff; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); overflow: hidden; }
+    .header { background: #1a56db; color: #fff; text-align: center; padding: 20px; }
+    .header h1 { font-size: 22px; }
+    .form-container { padding: 25px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { font-weight: 600; margin-bottom: 6px; display: block; }
+    .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+    .btn { width: 100%; padding: 12px; background: #1a56db; border: none; color: #fff; font-weight: 600; border-radius: 6px; cursor: pointer; }
+    .btn:hover { background: #1348bc; }
+    .photo-upload { border: 2px dashed #ddd; padding: 15px; text-align: center; border-radius: 6px; cursor: pointer; }
+    .photo-upload:hover { border-color: #1a56db; }
+    .required::after { content: "*"; color: red; margin-left: 3px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>NATIONAL INSTITUTE OF COMPUTER APPLICATION</h1>
+      <p>Student Registration Form</p>
+    </div>
+    <div class="form-container">
+      <form id="studentForm" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="fullname" class="required">Full Name</label>
+          <input type="text" id="fullname" name="fullname" required>
+        </div>
+        <div class="form-group">
+          <label for="rollno" class="required">Roll No</label>
+          <input type="text" id="rollno" name="rollno" required>
+        </div>
+        <div class="form-group">
+          <label for="dob" class="required">Date of Birth</label>
+          <input type="date" id="dob" name="dob" required>
+        </div>
+        <div class="form-group">
+          <label for="mobile" class="required">Mobile</label>
+          <input type="tel" id="mobile" name="mobile" required>
+        </div>
+        <div class="form-group">
+          <label for="bloodgroup" class="required">Blood Group</label>
+          <select id="bloodgroup" name="bloodgroup" required>
+            <option value="">Select</option>
+            <option>A+</option><option>A-</option>
+            <option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option>
+            <option>O+</option><option>O-</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="address" class="required">Address</label>
+          <input type="text" id="address" name="address" required>
+        </div>
+        <div class="form-group">
+          <label class="required">Upload Photo</label>
+          <div class="photo-upload" onclick="document.getElementById('photo').click()">
+            <input type="file" id="photo" name="photo" accept="image/*" hidden required>
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Click to upload your photo</p>
+            <span id="file-name"></span>
+          </div>
+        </div>
+        <button type="submit" class="btn">Submit Registration</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('photo').addEventListener('change', e => {
+      document.getElementById('file-name').textContent = e.target.files[0].name;
+    });
+
+    document.getElementById('studentForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      try {
+        const res = await fetch("http://localhost:5000/students", {
+          method: "POST",
+          body: formData
+        });
+        if (!res.ok) throw new Error("Failed to submit");
+        alert("Registration successful!");
+        this.reset();
+        document.getElementById('file-name').textContent = '';
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - NICA</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body { background: #f0f2f5; font-family: Arial, sans-serif; padding: 20px; }
+    .container { max-width: 1200px; margin: auto; }
+    .header { background: #1a56db; color: #fff; padding: 20px; border-radius: 10px; text-align: center; }
+    .admin-controls { display: flex; gap: 10px; margin: 15px 0; }
+    .admin-btn { background: #1a56db; color: #fff; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+    .admin-btn:hover { background: #1348bc; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: center; }
+    th { background: #f8f9fa; }
+    .student-photo { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
+    .action-btn { background: red; color: #fff; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; margin: 2px; }
+    .download-btn { background: green; color: #fff; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; margin: 2px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>ADMIN PANEL</h1>
+      <p>Manage Student Registrations</p>
+    </div>
+
+    <div class="admin-controls">
+      <button class="admin-btn" onclick="loadStudents()"><i class="fas fa-sync-alt"></i> Refresh</button>
+      <button class="admin-btn" onclick="downloadExcel()"><i class="fas fa-file-excel"></i> Download Excel</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Photo</th>
+          <th>Name</th>
+          <th>Roll No</th>
+          <th>DOB</th>
+          <th>Mobile</th>
+          <th>Blood Group</th>
+          <th>Address</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="studentsTableBody">
+        <tr><td colspan="8" style="text-align:center;">No records found</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    let studentList = []; // store students globally
+
+    async function loadStudents() {
+      try {
+        const res = await fetch("http://localhost:5000/students");
+        if (!res.ok) throw new Error("Failed to load students");
+        const students = await res.json();
+        studentList = students; // save for excel download
+        const body = document.getElementById('studentsTableBody');
+        body.innerHTML = '';
+        if (students.length === 0) {
+          body.innerHTML = '<tr><td colspan="8" style="text-align:center;">No records found</td></tr>';
+          return;
+        }
+        students.forEach(s => {
+          const row = `
+            <tr>
+              <td>
+                <img src="http://localhost:5000${s.photo}" class="student-photo"><br>
+                <button class="download-btn" onclick="downloadPhoto('http://localhost:5000${s.photo}', '${s.fullname}_photo.jpg')">
+                  <i class="fas fa-download"></i> Download
+                </button>
+              </td>
+              <td>${s.fullname}</td>
+              <td>${s.rollno}</td>
+              <td>${s.dob}</td>
+              <td>${s.mobile}</td>
+              <td>${s.bloodgroup}</td>
+              <td>${s.address}</td>
+              <td><button class="action-btn" onclick="deleteStudent('${s._id}')">Delete</button></td>
+            </tr>
+          `;
+          body.innerHTML += row;
+        });
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    }
+
+    async function deleteStudent(id) {
+      if (confirm("Delete this student?")) {
+        await fetch(`http://localhost:5000/students/${id}`, { method: "DELETE" });
+        loadStudents();
+      }
+    }
+
+    async function downloadPhoto(url, filename) {
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      } catch (err) {
+        alert("Download failed: " + err.message);
+      }
+    }
+
+    function downloadExcel() {
+      if (studentList.length === 0) {
+        alert("No students to export!");
+        return;
+      }
+      // Remove photo URL for Excel
+      const data = studentList.map(s => ({
+        Name: s.fullname,
+        RollNo: s.rollno,
+        DOB: s.dob,
+        Mobile: s.mobile,
+        BloodGroup: s.bloodgroup,
+        Address: s.address
+      }));
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Students");
+      XLSX.writeFile(wb, "students_list.xlsx");
+    }
+
+    // Load on page start
+    loadStudents();
+  </script>
+</body>
+</html>
