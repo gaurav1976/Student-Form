@@ -9,9 +9,12 @@ import fs from "fs";
 const app = express();
 
 // ✅ CORS: allow both frontends
-app.use(cors({
-  origin: "*" // allow all origins for testing
-}));
+const allowedOrigins = [
+  "https://student-form-vv1j.vercel.app",
+  "https://www.admin-staff-vercel.com",
+  "http://localhost:3000", // if testing locally
+  "null" // file:// origin
+];
 // ✅ JSON parsing
 app.use(express.json());
 
