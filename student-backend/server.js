@@ -1,21 +1,30 @@
+// server.js (student-backend)
+import 'dotenv/config';                 // loads .env in ESM
 import express from "express";
 import mongoose from "mongoose";
 import multer from "multer";
 import cors from "cors";
 import path from "path";
+import fs from "fs";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Static folder to serve photos
-app.use("/uploads", express.static("uploads"));
+// ensure uploads folder exists
+const uploadsDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 
-// MongoDB connect
-mongoose.connect("mongodb://127.0.0.1:27017/nica", {
+// serve uploads folder
+app.use("/uploads", express.static(uploadsDir));
+
+// MongoDB connect (use MONGO_URI from env or fallback to local)
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/nica";
+mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-});
+}).then(() => console.log("MongoDB connected"))
+  .catch(err => console.error("MongoDB error:", err));
 
 // Schema
 const studentSchema = new mongoose.Schema({
@@ -29,10 +38,13 @@ const studentSchema = new mongoose.Schema({
 });
 const Student = mongoose.model("Student", studentSchema);
 
-// ✅ Multer config to keep original name
+// Multer config - unique filename
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
-  filename: (req, file, cb) => cb(null, file.originalname), // keep real name
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => {
+    const safeName = file.originalname.replace(/\s+/g, '-');
+    cb(null, `${Date.now()}-${safeName}`);
+  },
 });
 const upload = multer({ storage });
 
@@ -46,7 +58,7 @@ app.post("/students", upload.single("photo"), async (req, res) => {
       mobile: req.body.mobile,
       bloodgroup: req.body.bloodgroup,
       address: req.body.address,
-      photo: "/uploads/" + req.file.originalname, // store path
+      photo: "/uploads/" + req.file.filename,
     });
     await student.save();
     res.json(student);
@@ -65,6 +77,6 @@ app.delete("/students/:id", async (req, res) => {
   res.json({ message: "Deleted" });
 });
 
-// Start server
+// Start server: use env PORT (Render provides one)
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
