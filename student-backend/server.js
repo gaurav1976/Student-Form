@@ -1,5 +1,4 @@
-// server.js (student-backend)
-import 'dotenv/config';                 // loads .env in ESM
+import 'dotenv/config'; 
 import express from "express";
 import mongoose from "mongoose";
 import multer from "multer";
@@ -20,14 +19,11 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 // serve uploads folder
 app.use("/uploads", express.static(uploadsDir));
 
-// MongoDB connect (use MONGO_URI from env or fallback to local)
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/nica";
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log("MongoDB connected"))
-.catch(err => console.error("MongoDB error:", err));
+// MongoDB connect using MONGO_URI from .env
+const MONGO_URI = process.env.MONGO_URI;
+mongoose.connect(MONGO_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.error("MongoDB error:", err));
 
 // Schema
 const studentSchema = new mongoose.Schema({
