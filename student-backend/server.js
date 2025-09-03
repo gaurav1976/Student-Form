@@ -6,6 +6,8 @@ import multer from "multer";
 import cors from "cors";
 import path from "path";
 import fs from "fs";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -20,11 +22,12 @@ app.use("/uploads", express.static(uploadsDir));
 
 // MongoDB connect (use MONGO_URI from env or fallback to local)
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/nica";
-mongoose.connect(MONGO_URI, {
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-}).then(() => console.log("MongoDB connected"))
-  .catch(err => console.error("MongoDB error:", err));
+})
+.then(() => console.log("MongoDB connected"))
+.catch(err => console.error("MongoDB error:", err));
 
 // Schema
 const studentSchema = new mongoose.Schema({
