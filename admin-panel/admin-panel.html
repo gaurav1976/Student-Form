@@ -57,7 +57,7 @@
 
     async function loadStudents() {
       try {
-        const res = await fetch("http://localhost:5000/students");
+        const res = await fetch("https://student-backend.onrender.com/students");
         if (!res.ok) throw new Error("Failed to load students");
         const students = await res.json();
         studentList = students; // save for excel download
@@ -71,8 +71,8 @@
           const row = `
             <tr>
               <td>
-                <img src="http://localhost:5000${s.photo}" class="student-photo"><br>
-                <button class="download-btn" onclick="downloadPhoto('http://localhost:5000${s.photo}', '${s.fullname}_photo.jpg')">
+                <img src="https://student-backend.onrender.com${s.photo}" class="student-photo"><br>
+                <button class="download-btn" onclick="downloadPhoto('https://student-backend.onrender.com${s.photo}', '${s.fullname}_photo.jpg')">
                   <i class="fas fa-download"></i> Download
                 </button>
               </td>
@@ -94,7 +94,7 @@
 
     async function deleteStudent(id) {
       if (confirm("Delete this student?")) {
-        await fetch(`http://localhost:5000/students/${id}`, { method: "DELETE" });
+        await fetch(`https://student-backend.onrender.com/students/${id}`, { method: "DELETE" });
         loadStudents();
       }
     }

@@ -89,10 +89,11 @@
       e.preventDefault();
       const formData = new FormData(this);
       try {
-        const res = await fetch("http://localhost:5000/students", {
-          method: "POST",
-          body: formData
-        });
+        const res = await fetch("https://student-backend.onrender.com/students", {
+  method: "POST",
+  body: formData
+});
+
         if (!res.ok) throw new Error("Failed to submit");
         alert("Registration successful!");
         this.reset();
