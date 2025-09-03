@@ -10,14 +10,8 @@ const app = express();
 
 // ✅ CORS: allow both frontends
 app.use(cors({
-  origin: [
-    "https://student-form-vv1j.vercel.app",
-    "https://www.admin-staff-vercel.com"
-  ],
-  methods: ["GET", "POST", "DELETE", "OPTIONS"],
-  credentials: true
+  origin: "*" // allow all origins for testing
 }));
-
 // ✅ JSON parsing
 app.use(express.json());
 
