@@ -6,17 +6,9 @@
   <title>Student I-Card Form - NICA</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
+    body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
     .container { max-width: 700px; background: #fff; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); overflow: hidden; }
     .header { background: #1a56db; color: #fff; text-align: center; padding: 20px; }
-    .header h1 { font-size: 22px; }
     .form-container { padding: 25px; }
     .form-group { margin-bottom: 15px; }
     .form-group label { font-weight: 600; margin-bottom: 6px; display: block; }
@@ -81,6 +73,8 @@
   </div>
 
   <script>
+    const BASE_URL = "https://student-form-vcj9.onrender.com";
+
     document.getElementById('photo').addEventListener('change', e => {
       document.getElementById('file-name').textContent = e.target.files[0].name;
     });
@@ -89,12 +83,7 @@
       e.preventDefault();
       const formData = new FormData(this);
       try {
-        fetch("https://student-backend.onrender.com/students", {
-  method: "POST",
-  body: formData
-});
-
-
+        const res = await fetch(`${BASE_URL}/students`, { method: "POST", body: formData });
         if (!res.ok) throw new Error("Failed to submit");
         alert("Registration successful!");
         this.reset();

@@ -53,48 +53,49 @@
   </div>
 
   <script>
-    let studentList = []; // store students globally
+    const BASE_URL = "https://student-form-vcj9.onrender.com";
+    let studentList = [];
 
     async function loadStudents() {
       try {
-        const res = await fetch("https://student-backend.onrender.com/students");
+        const res = await fetch(`${BASE_URL}/students`);
         if (!res.ok) throw new Error("Failed to load students");
-        const students = await res.json();
-        studentList = students; // save for excel download
+        studentList = await res.json();
+
         const body = document.getElementById('studentsTableBody');
         body.innerHTML = '';
-        if (students.length === 0) {
+        if (studentList.length === 0) {
           body.innerHTML = '<tr><td colspan="8" style="text-align:center;">No records found</td></tr>';
           return;
         }
-        students.forEach(s => {
-          const row = `
-            <tr>
-              <td>
-                <img src="https://student-backend.onrender.com${s.photo}" class="student-photo"><br>
-                <button class="download-btn" onclick="downloadPhoto('https://student-backend.onrender.com${s.photo}', '${s.fullname}_photo.jpg')">
-                  <i class="fas fa-download"></i> Download
-                </button>
-              </td>
-              <td>${s.fullname}</td>
-              <td>${s.rollno}</td>
-              <td>${s.dob}</td>
-              <td>${s.mobile}</td>
-              <td>${s.bloodgroup}</td>
-              <td>${s.address}</td>
-              <td><button class="action-btn" onclick="deleteStudent('${s._id}')">Delete</button></td>
-            </tr>
+
+        studentList.forEach(s => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>
+              <img src="${BASE_URL}${s.photo}" class="student-photo"><br>
+              <button class="download-btn" onclick="downloadPhoto('${BASE_URL}${s.photo}', '${s.fullname}_photo.jpg')">
+                <i class="fas fa-download"></i> Download
+              </button>
+            </td>
+            <td>${s.fullname}</td>
+            <td>${s.rollno}</td>
+            <td>${s.dob}</td>
+            <td>${s.mobile}</td>
+            <td>${s.bloodgroup}</td>
+            <td>${s.address}</td>
+            <td><button class="action-btn" onclick="deleteStudent('${s._id}')">Delete</button></td>
           `;
-          body.innerHTML += row;
+          body.appendChild(row);
         });
-      } catch (err) {
+      } catch(err) {
         alert("Error: " + err.message);
       }
     }
 
     async function deleteStudent(id) {
-      if (confirm("Delete this student?")) {
-        await fetch(`https://student-backend.onrender.com/students/${id}`, { method: "DELETE" });
+      if(confirm("Delete this student?")) {
+        await fetch(`${BASE_URL}/students/${id}`, { method: "DELETE" });
         loadStudents();
       }
     }
@@ -108,17 +109,16 @@
         link.download = filename;
         link.click();
         URL.revokeObjectURL(link.href);
-      } catch (err) {
+      } catch(err) {
         alert("Download failed: " + err.message);
       }
     }
 
     function downloadExcel() {
-      if (studentList.length === 0) {
+      if(studentList.length === 0) {
         alert("No students to export!");
         return;
       }
-      // Remove photo URL for Excel
       const data = studentList.map(s => ({
         Name: s.fullname,
         RollNo: s.rollno,
@@ -133,7 +133,6 @@
       XLSX.writeFile(wb, "students_list.xlsx");
     }
 
-    // Load on page start
     loadStudents();
   </script>
 </body>

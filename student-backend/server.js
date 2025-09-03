@@ -1,31 +1,36 @@
-import 'dotenv/config'; 
+import 'dotenv/config';
 import express from "express";
 import mongoose from "mongoose";
 import multer from "multer";
 import cors from "cors";
 import path from "path";
 import fs from "fs";
-import dotenv from "dotenv";
-dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// CORS: allow both frontends
+app.use(cors({
+  origin: [
+    "https://student-form-vv1j.vercel.app",
+    "https://www.admin-staff-vercel.com"
+  ]
+}));
+
 app.use(express.json());
 
-// ensure uploads folder exists
+// Ensure uploads folder exists
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 
-// serve uploads folder
+// Serve uploads
 app.use("/uploads", express.static(uploadsDir));
 
-// MongoDB connect using MONGO_URI from .env
-const MONGO_URI = process.env.MONGO_URI;
-mongoose.connect(MONGO_URI)
+// MongoDB
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error("MongoDB error:", err));
 
-// Schema
+// Student schema
 const studentSchema = new mongoose.Schema({
   fullname: String,
   rollno: String,
@@ -37,13 +42,10 @@ const studentSchema = new mongoose.Schema({
 });
 const Student = mongoose.model("Student", studentSchema);
 
-// Multer config - unique filename
+// Multer setup
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => {
-    const safeName = file.originalname.replace(/\s+/g, '-');
-    cb(null, `${Date.now()}-${safeName}`);
-  },
+  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`)
 });
 const upload = multer({ storage });
 
@@ -67,15 +69,23 @@ app.post("/students", upload.single("photo"), async (req, res) => {
 });
 
 app.get("/students", async (req, res) => {
-  const students = await Student.find();
-  res.json(students);
+  try {
+    const students = await Student.find();
+    res.json(students);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 app.delete("/students/:id", async (req, res) => {
-  await Student.findByIdAndDelete(req.params.id);
-  res.json({ message: "Deleted" });
+  try {
+    await Student.findByIdAndDelete(req.params.id);
+    res.json({ message: "Deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
-// Start server: use env PORT (Render provides one)
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
